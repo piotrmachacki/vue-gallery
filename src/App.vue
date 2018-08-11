@@ -3,14 +3,16 @@
 	<div class="app-wrapper">
 
 		<div class="sidebar">
-			<albums :albums="albums"/>
+			<albums :albums="albums" @currentAlbum="changeAlbum" />
 		</div>
 		
 		<div class="plane">
 
 			<div class="space-bg"></div>
 
-			<div class="elements"></div>
+			<div class="elements">
+				<photos :photos="photos" />
+			</div>
 			
 		</div>
 
@@ -26,16 +28,69 @@
 	
 	import albumsData from './data/albums'
 	import Albums from './components/Albums'
+	import Photos from './components/Photos'
+	// import { preloadImage, matrix3D } from "./helpers/helpers";
 
 	export default {
 		name: 'App',
 		data() {
 			return {
-				albums: albumsData
+				albums: albumsData,
+				active: null,
+				photos: []
 			}
 		},
+		computed: {
+			activeAlbum() {
+				return this.albums[this.active];
+			}
+		},
+		watch: {
+			active: function(val) {
+				// this.displayPhotos(val)
+				this.photos = this.activeAlbum.photos;
+			}
+		},
+		methods: {
+			changeAlbum: function(index) {
+				this.active = index;
+				// this.photos = this.activeAlbum.photos;
+			},
+			// displayPhotos(index) {
+
+				// this.active = index;
+
+				// const elementsNode = document.querySelector('.plane .photos');
+				// elementsNode.innerHTML = '';
+
+				// this.photos.forEach(photo => {
+				// 	const el = document.createElement('div');
+				// 	el.className = 'photo';
+
+				// 	const img = document.createElement('img');
+				// 	img.src = photo.url;
+
+				// 	el.appendChild(img);
+
+				// 	elementsNode.appendChild(el);
+				// });
+
+				// const elementsSet = elementsNode.querySelectorAll('.photo');
+
+				// matrix3D(elementsSet, 5000);
+
+				// setTimeout(function() {
+				// 	matrix3D(elementsSet);
+				// }, 100);
+
+			// }
+		},
 		components: {
-			Albums
+			Albums,
+			Photos
+		},
+		mounted() {
+			this.changeAlbum(0);
 		}
 	}
 
@@ -91,7 +146,7 @@
 		animation: rotation 500s linear infinite;
 	}
 
-	.elements {
+	.photos {
 		position: absolute;
 		z-index: 20;
 		width: 100%;
@@ -103,7 +158,7 @@
 		transform-style: preserve-3d;
 		perspective: 1000px;
 
-		.element {
+		.photo {
 			width: 50%;
 			position: absolute;
 			left: 50%;

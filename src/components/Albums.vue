@@ -15,7 +15,6 @@
 
 <script>
 	
-	import { preloadImage, matrix3D } from "../helpers/helpers";
 	import Album from "./Album";
 
 	export default {
@@ -23,53 +22,13 @@
 		props: {
 			albums: Array
 		},
-		data() {
-			return {
-				active: 0,
-				// isLoading: false,
-				// loaded: false
-			}
-		},
-		computed: {
-			activeAlbum() {
-				return this.albums[this.active];
-			}
-		},
 		methods: {
 			changeAlbum(index) {
-
-				this.active = index;
-
-				const elementsNode = document.querySelector('.plane .elements');
-				elementsNode.innerHTML = '';
-
-				this.activeAlbum.photos.forEach(photo => {
-					const el = document.createElement('div');
-					el.className = 'element';
-
-					const img = document.createElement('img');
-					img.src = photo.url;
-
-					el.appendChild(img);
-
-					elementsNode.appendChild(el);
-				});
-
-				const elementsSet = elementsNode.querySelectorAll('.element');
-
-				matrix3D(elementsSet, 5000);
-
-				setTimeout(function() {
-					matrix3D(elementsSet);
-				}, 100);
-
+				this.$emit('currentAlbum', index);
 			}
 		},
 		components: {
 			Album
-		},
-		mounted() {
-			this.changeAlbum(0);
 		}
 	}
 
