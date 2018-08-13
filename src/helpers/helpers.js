@@ -1,6 +1,6 @@
 export function preloadImage(url) {
 
-	const img = document.createElement("img");
+	const img = document.createElement('img');
 	const p = new Promise(function(resolve, reject) {
 		img.onload = () => resolve(url);
 		img.onerror = () => reject(url);
@@ -24,16 +24,17 @@ function getRandomInteger(min, max) {
 
 
 
-export function matrix3D(elements, rangeVal = 200) {
+export function matrix3D(elements, rangeVal = 500) {
 
-	for(var i = 0; i < elements.length; i++) {
+	for(let i = 0; i < elements.length; i++) {
 
-		var j = i + 1;
-		var range = rangeVal * j;
+		let j = i + 1;
+		let range = rangeVal * (j/2);
+		let posZ = -500;
 
-		var moveX = getRandomInteger(-range, range);
-		var moveY = getRandomInteger(-range, range);
-		var moveZ = (j+1) * -500;
+		let moveX = getRandomInteger(-range, range);
+		let moveY = getRandomInteger(-range, range);
+		let moveZ = posZ + (j+1) * -500;
 
 		elements[i].style.transform = `
 			translate(-50%, -50%) 

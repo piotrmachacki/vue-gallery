@@ -1,8 +1,20 @@
 <template>
 	
-	<div class="photos">
-		<div class="photo" v-for="photo in photos">
-			<img :src="photo.url" :alt="photo.title">
+	<div class="scene-wrap">
+		<div class="photos-progress" v-if="loading">
+			<h5>Loaded {{ this.counter }}/{{ this.photosCount }}</h5>
+			<b-progress :variant="'secondary'" show-progress>
+				<b-progress-bar :value="progress">
+					<span class="progress-bar-value">{{ progress.toFixed(2) }} %</span>
+				</b-progress-bar>
+			</b-progress>
+		</div>
+		<div class="scene">
+			<div :class="['photos', { 'loading': loading, 'loaded': loaded }]">
+				<div class="photo" v-for="photo in photosData">
+					<img :src="photo.url" :alt="photo.title">
+				</div>
+			</div>
 		</div>
 	</div>
 	
@@ -20,31 +32,93 @@
 		props: {
 			photos: Array
 		},
-		watch: {
-			photos(newValue, oldValue) {
-				// console.log(newValue, oldValue);
-				// if(oldValue.length === 0 && newValue.length !== 0) {
-				// 	preloadImage(this.activeUrl)
-				// 		.then(url => this.loaded = true);
-				// }
-
-				this.displayPhotos();
+		data() {
+			return {
+				photosData: [],
+				loading: false,
+				loaded: false,
+				updated: false,
+				counter: 0,
+				photosCount: 0,
+				progress: 0
 			}
 		},
 		methods: {
+			changePhotos() {
+				this.loading = true;
+				this.loaded = false;
+				const photos = document.querySelectorAll('.photos .photo');
+				matrix3D(photos, 1000);
+			},
+			loadPhotos() {
+				let photosData = [];
+				let promises = [];
+
+				this.photos.forEach(photo => {
+
+					let p = preloadImage(photo.url).then(
+						url => {
+							photosData.push(photo);
+							this.counter++
+							this.updateCounter();
+						},
+						url => {
+							this.photosCount--;
+							this.updateCounter();
+						}
+					);
+
+					promises.push(p);
+
+				});
+
+				Promise.all(promises).then(values => {
+					this.photosData = photosData;
+					this.updated = true;
+					// this.counter = 0;
+				}).catch(reason => { 
+					console.log(reason);
+				});
+			},
 			displayPhotos() {
 				const photos = document.querySelectorAll('.photos .photo');
-
-				// matrix3D(photos, 5000);
-
-				setTimeout(function() {
-					matrix3D(photos);
-				}, 100);
+				matrix3D(photos);
+				this.counter = 0;
+				this.progress = 0;
+				this.loading = false;
+				this.loaded = true;
+				this.resetScene();
+			},
+			updateCounter() {
+				this.progress = (this.counter/this.photosCount*100);
+			},
+			resetScene() {
+				let sceneNode = document.querySelector('.scene');
+				sceneNode.style['perspective-origin'] = '';
 			}
 		},
+		watch: {
+			photos(newValue, oldValue) {
+				this.photosCount = this.photos.length;
+				this.changePhotos();
+				setTimeout(() => {
+					this.loadPhotos();
+				}, 1000);
+			}
+		},
+		mounted() {
+		},
 		updated() {
-			this.displayPhotos();
+			if(this.updated === true) {
+				this.updated = false;
+				this.changePhotos();
+				setTimeout(() => {
+					this.displayPhotos();
+				}, 1000);
+			}
 		}
+
+
 	};
 
 </script>
@@ -52,5 +126,106 @@
 
 
 <style lang="scss">
+
+	.photos-progress {
+		position: absolute;
+		z-index: 100;
+		width: 50%;
+		height: 50%;
+		left: 50%;
+		top: 50%;
+		transform: translate(-50%, -50%) translateZ(-500px);
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+
+		h5 {
+			color: #fff;
+			text-shadow: 0 0 5px #6c757d;
+			line-height: unset;
+		}
+
+		.progress {
+			width: 100%;
+			height: 1.4rem;
+
+			.progress-bar {
+				height: 100%;
+				align-self: center;
+				justify-content: center;
+
+				.progress-bar-value {
+					padding: 0 5px
+				}
+			}
+		}
+	}
+	
+	.scene-wrap {
+		position: absolute;
+		z-index: 20;
+		width: 100%;
+		height: 100%;
+		left: 0;
+		right: 0;
+		top:0;
+		bottom: 0;
+	}
+
+	.scene {
+		width: 100%;
+		height: 100%;
+		position: relative;
+		z-index: 30;
+		perspective: 2000px;
+		perspective-origin: 50% 50%;
+	}
+
+	.photos {
+		position: absolute;
+		z-index: 40;
+		width: 100%;
+		height: 100%;
+		left: 0;
+		right: 0;
+		top:0;
+		bottom: 0;
+		transform: translateZ(1000px);
+		transform-style: preserve-3d;
+		perspective: 1000px;
+
+		.photo {
+			width: 50%;
+			position: absolute;
+			left: 50%;
+			top: 50%;
+			transform: translate(-50%, -50%) matrix3d(1,0,0.00,0,0.00,1,0.00,0,0,0,1,0,0,0,0,1);
+			// border: 2px solid #525252;
+			box-shadow: 0 0 40px rgba(255, 255, 255, 0.8);
+			text-align: center;
+			cursor: pointer;
+			opacity: 0;
+			transition: all 1s cubic-bezier(0.22, 0.61, 0.36, 1);
+
+			img {
+				width: 100%;
+			}
+		}
+
+		&.loading {
+			// background: url('./assets/img/loader.gif') no-repeat center center;
+
+			.photo {
+				opacity: 0;
+			}
+		}
+
+		&.loaded {
+			.photo {
+				opacity: 1;
+			}
+		}
+	}
 
 </style>
