@@ -27,6 +27,7 @@
 	import albumsData from './data/albums'
 	import Albums from './components/Albums'
 	import Photos from './components/Photos'
+	import { getCursorPositionByCenterOfElement } from "./helpers/helpers";
 
 	export default {
 		name: 'App',
@@ -50,6 +51,25 @@
 		methods: {
 			changeAlbum: function(index) {
 				this.active = index;
+			},
+			transformScene() {
+
+				let sceneNode = document.querySelector('.scene');
+
+				sceneNode.addEventListener('mousemove', e => {
+
+					let pos = getCursorPositionByCenterOfElement(sceneNode, e);
+
+					let w = sceneNode.offsetWidth;
+					let h = sceneNode.offsetHeight;
+
+					let tx = pos.x/w*100;
+					let ty = pos.y/h*100;
+
+					sceneNode.style['perspective-origin'] = `${50+tx*2}% ${50+ty*2}%`;
+
+				}, false);
+
 			}
 		},
 		components: {
@@ -58,6 +78,7 @@
 		},
 		mounted() {
 			this.changeAlbum(0);
+			this.transformScene();
 		}
 	}
 
