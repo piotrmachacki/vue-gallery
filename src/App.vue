@@ -58,15 +58,19 @@
 
 				sceneNode.addEventListener('mousemove', e => {
 
-					let pos = getCursorPositionByCenterOfElement(sceneNode, e);
+					if(!sceneNode.classList.contains('active')) {
 
-					let w = sceneNode.offsetWidth;
-					let h = sceneNode.offsetHeight;
+						let pos = getCursorPositionByCenterOfElement(sceneNode, e);
 
-					let tx = pos.x/w*100;
-					let ty = pos.y/h*100;
+						let w = sceneNode.offsetWidth;
+						let h = sceneNode.offsetHeight;
 
-					sceneNode.style['perspective-origin'] = `${50+tx*2}% ${50+ty*2}%`;
+						let tx = pos.x/w*100;
+						let ty = pos.y/h*100;
+
+						sceneNode.style['perspective-origin'] = `${50+tx*2}% ${50+ty*2}%`;
+
+					}
 
 				}, false);
 

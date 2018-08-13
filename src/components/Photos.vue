@@ -9,9 +9,10 @@
 				</b-progress-bar>
 			</b-progress>
 		</div>
-		<div class="scene">
+		<div :class="['scene', { 'active': activeScene }]">
+			<b-button :class="['reset-scene', { 'active': activeScene }]" @click="resetScene()">close</b-button>
 			<div :class="['photos', { 'loading': loading, 'loaded': loaded }]">
-				<div class="photo" v-for="photo in photosData">
+				<div class="photo" @click="showPhoto(index)" v-for="(photo, index) in photosData">
 					<img :src="photo.url" :alt="photo.title">
 				</div>
 			</div>
@@ -40,7 +41,8 @@
 				updated: false,
 				counter: 0,
 				photosCount: 0,
-				progress: 0
+				progress: 0,
+				activeScene: false
 			}
 		},
 		methods: {
@@ -92,9 +94,99 @@
 			updateCounter() {
 				this.progress = (this.counter/this.photosCount*100);
 			},
+			showPhoto(index) {
+
+				let sceneNode = document.querySelector('.scene')
+				let photos = document.querySelectorAll('.photos .photo');
+				let activePhoto = photos[index];
+
+				photos.forEach(photo => {
+					photo.classList.remove('activePhoto');
+				});
+
+				this.activeScene = true;
+				sceneNode.style.perspectiveOrigin = '';
+				sceneNode.classList.add('active');
+				activePhoto.classList.add('activePhoto');
+
+				let zDistance = -200;
+
+				let activeMoveX = activePhoto.dataset.moveX;
+				let activeMoveY = activePhoto.dataset.moveY;
+				let activeMoveZ = activePhoto.dataset.moveZ;
+
+				let breakpoint = false;
+
+				activePhoto.style.transform = `
+					translate(-50%, -50%) 
+					matrix3d(
+						1, 0, 0, 0,
+						0, 1, 0, 0,
+						0, 0, 1, 0,
+						0, 0, ${zDistance}, 1
+					)
+				`;
+
+				photos.forEach(photo => {
+
+					if(!photo.classList.contains('activePhoto')) {
+
+						let moveX = photo.dataset.moveX;
+						let moveY = photo.dataset.moveY;
+						let moveZ = photo.dataset.moveZ;
+
+						photo.style.transform = `
+							translate(-50%, -50%) 
+							matrix3d(
+
+								1, 0, 0, 0,
+								0, 1, 0, 0,
+								0, 0, 1, 0,
+								${moveX - activeMoveX}, ${moveY - activeMoveY}, ${moveZ - activeMoveZ + zDistance}, 1
+
+							)
+						`;
+
+						if(breakpoint === false) photo.style.opacity = 0;
+
+					} else {
+						breakpoint = true;
+					}
+
+				});
+			},
 			resetScene() {
-				let sceneNode = document.querySelector('.scene');
-				sceneNode.style['perspective-origin'] = '';
+
+				let sceneNode = document.querySelector('.scene')
+				let photos = document.querySelectorAll('.photos .photo');
+
+				photos.forEach(photo => {
+
+					photo.classList.remove('activePhoto');
+
+					let moveX = photo.dataset.moveX;
+					let moveY = photo.dataset.moveY;
+					let moveZ = photo.dataset.moveZ;
+
+					photo.style.transform = `
+						translate(-50%, -50%) 
+						matrix3d(
+
+							1, 0, 0, 0,
+							0, 1, 0, 0,
+							0, 0, 1, 0,
+							${moveX}, ${moveY}, ${moveZ}, 1
+
+						)
+					`;
+
+					photo.style.opacity = '';
+
+				});
+
+				this.activeScene = false;
+				sceneNode.classList.remove('active');
+
 			}
 		},
 		watch: {
@@ -176,21 +268,36 @@
 	.scene {
 		width: 100%;
 		height: 100%;
-		position: relative;
 		z-index: 30;
 		perspective: 2000px;
 		perspective-origin: 50% 50%;
+		padding-top: 30%;
+	}
+
+	.reset-scene {
+		position: absolute;
+		top: -20px;
+		right: -20px;
+		opacity: 0;
+		transition: all 0.3s ease;
+
+		&.active {
+			top: 20px;
+			right: 20px;
+			opacity: 1;
+		}
 	}
 
 	.photos {
-		position: absolute;
-		z-index: 40;
-		width: 100%;
-		height: 100%;
-		left: 0;
-		right: 0;
-		top:0;
-		bottom: 0;
+		// position: absolute;
+		// z-index: 40;
+		// width: 100%;
+		// height: 100%;
+		// left: 0;
+		// right: 0;
+		// top:0;
+		// bottom: 0;
+		// transform: matrix3d( 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 2001, 1);
 		transform: translateZ(1000px);
 		transform-style: preserve-3d;
 		perspective: 1000px;

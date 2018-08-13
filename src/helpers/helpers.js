@@ -48,6 +48,10 @@ export function matrix3D(elements, rangeVal = 500) {
 			)
 		`;
 
+		elements[i].dataset.moveX = moveX;
+		elements[i].dataset.moveY = moveY;
+		elements[i].dataset.moveZ = moveZ;
+
 	}
 
 }
