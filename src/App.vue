@@ -3,7 +3,11 @@
 	<div class="app-wrapper">
 
 		<div class="sidebar">
-			<albums :albums="albums" @currentAlbum="changeAlbum" />
+			<vue-scrollbar classes="sidebar-scrollbar" ref="Scrollbar">
+				<div class="scrollbar-wrapper">
+					<albums :albums="albums" @currentAlbum="changeAlbum" />
+				</div>
+			</vue-scrollbar>
 		</div>
 		
 		<div class="plane">
@@ -27,6 +31,8 @@
 	import albumsData from './data/albums'
 	import Albums from './components/Albums'
 	import Photos from './components/Photos'
+	import VueScrollbar from 'vue2-scrollbar';
+	import 'vue2-scrollbar/dist/style/vue2-scrollbar.css'
 	import { getCursorPositionByCenterOfElement } from "./helpers/helpers";
 
 	export default {
@@ -78,7 +84,8 @@
 		},
 		components: {
 			Albums,
-			Photos
+			Photos,
+			VueScrollbar
 		},
 		mounted() {
 			this.changeAlbum(0);
@@ -109,8 +116,8 @@
 		width: 20%;
 		height: 100vh;
 		float: left;
-		overflow: hidden;
-		overflow-y: scroll;
+		// overflow: hidden;
+		// overflow-y: scroll;
 		border-right: 2px solid #525252;
 	}
 
@@ -136,6 +143,23 @@
 		background-image: url('./assets/img/space-bg1.jpg');
 		background-size: contain;
 		animation: rotation 500s linear infinite;
+	}
+
+	.sidebar-scrollbar {
+		width: 100%;
+		min-width: 100%;
+		max-height: 100%;
+
+		.scrollbar-wrapper {
+			background: #222;
+			padding-right: 10px;
+			padding-left: 5px;
+		}
+
+		.vue-scrollbar__scrollbar-vertical .scrollbar,
+		.vue-scrollbar__scrollbar-horizontal .scrollbar {
+			background: #666;
+		}
 	}
 
 	@-webkit-keyframes rotation {
