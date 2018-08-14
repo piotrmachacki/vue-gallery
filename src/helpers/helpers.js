@@ -36,23 +36,42 @@ export function matrix3D(elements, rangeVal = 500) {
 		let moveY = getRandomInteger(-range, range);
 		let moveZ = posZ + (j+1) * -500;
 
-		elements[i].style.transform = `
-			translate(-50%, -50%) 
-			matrix3d(
+		// elements[i].style.transform = `
+		// 	translate(-50%, -50%) 
+		// 	matrix3d(
 
-				1, 0, 0, 0,
-				0, 1, 0, 0,
-				0, 0, 1, 0,
-				${moveX}, ${moveY}, ${moveZ}, 1
+		// 		1, 0, 0, 0,
+		// 		0, 1, 0, 0,
+		// 		0, 0, 1, 0,
+		// 		${moveX}, ${moveY}, ${moveZ}, 1
 
-			)
-		`;
+		// 	)
+		// `;
+
+		let transformProp = {'moveX':moveX, 'moveY':moveY, 'moveZ':moveY}
+		matrix3DElement(elements[i], transformProp);
 
 		elements[i].dataset.moveX = moveX;
 		elements[i].dataset.moveY = moveY;
 		elements[i].dataset.moveZ = moveZ;
 
 	}
+
+}
+
+
+
+export function matrix3DElement(element, transformProp = {'moveX':0, 'moveY':0, 'moveZ':0}) {
+
+	element.style.transform = `
+		translate(-50%, -50%) 
+		matrix3d(
+			1, 0, 0, 0,
+			0, 1, 0, 0,
+			0, 0, 1, 0,
+			${transformProp.moveX}, ${transformProp.moveY}, ${transformProp.moveZ}, 1
+		)
+	`;
 
 }
 

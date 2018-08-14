@@ -26,7 +26,7 @@
 
 <script>
 	
-	import { preloadImage, matrix3D } from "../helpers/helpers";
+	import { preloadImage, matrix3D, matrix3DElement } from "../helpers/helpers";
 
 	export default {
 		name: 'Photos',
@@ -77,7 +77,6 @@
 				Promise.all(promises).then(values => {
 					this.photosData = photosData;
 					this.updated = true;
-					// this.counter = 0;
 				}).catch(reason => { 
 					console.log(reason);
 				});
@@ -106,7 +105,6 @@
 
 				this.activeScene = true;
 				sceneNode.style.perspectiveOrigin = '';
-				sceneNode.classList.add('active');
 				activePhoto.classList.add('activePhoto');
 
 				let zDistance = -200;
@@ -117,35 +115,19 @@
 
 				let breakpoint = false;
 
-				activePhoto.style.transform = `
-					translate(-50%, -50%) 
-					matrix3d(
-						1, 0, 0, 0,
-						0, 1, 0, 0,
-						0, 0, 1, 0,
-						0, 0, ${zDistance}, 1
-					)
-				`;
+				let transformProp = {'moveX':0, 'moveY':0, 'moveZ':zDistance}
+				matrix3DElement(activePhoto, transformProp);
 
 				photos.forEach(photo => {
 
 					if(!photo.classList.contains('activePhoto')) {
 
-						let moveX = photo.dataset.moveX;
-						let moveY = photo.dataset.moveY;
-						let moveZ = photo.dataset.moveZ;
+						let moveX = photo.dataset.moveX - activeMoveX;
+						let moveY = photo.dataset.moveY - activeMoveY;
+						let moveZ = photo.dataset.moveZ - activeMoveZ + zDistance;
 
-						photo.style.transform = `
-							translate(-50%, -50%) 
-							matrix3d(
-
-								1, 0, 0, 0,
-								0, 1, 0, 0,
-								0, 0, 1, 0,
-								${moveX - activeMoveX}, ${moveY - activeMoveY}, ${moveZ - activeMoveZ + zDistance}, 1
-
-							)
-						`;
+						let transformProp = {'moveX':moveX, 'moveY':moveY, 'moveZ':moveZ}
+						matrix3DElement(photo, transformProp);
 
 						if(breakpoint === false) photo.style.opacity = 0;
 
@@ -168,17 +150,8 @@
 					let moveY = photo.dataset.moveY;
 					let moveZ = photo.dataset.moveZ;
 
-					photo.style.transform = `
-						translate(-50%, -50%) 
-						matrix3d(
-
-							1, 0, 0, 0,
-							0, 1, 0, 0,
-							0, 0, 1, 0,
-							${moveX}, ${moveY}, ${moveZ}, 1
-
-						)
-					`;
+					let transformProp = {'moveX':moveX, 'moveY':moveY, 'moveZ':moveZ}
+					matrix3DElement(photo, transformProp);
 
 					photo.style.opacity = '';
 
@@ -308,7 +281,6 @@
 			left: 50%;
 			top: 50%;
 			transform: translate(-50%, -50%) matrix3d(1,0,0.00,0,0.00,1,0.00,0,0,0,1,0,0,0,0,1);
-			// border: 2px solid #525252;
 			box-shadow: 0 0 40px rgba(255, 255, 255, 0.8);
 			text-align: center;
 			cursor: pointer;
@@ -321,8 +293,6 @@
 		}
 
 		&.loading {
-			// background: url('./assets/img/loader.gif') no-repeat center center;
-
 			.photo {
 				opacity: 0;
 			}
