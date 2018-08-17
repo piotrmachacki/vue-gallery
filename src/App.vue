@@ -32,7 +32,6 @@
 	import Photos from './components/Photos'
 	import VueScrollbar from 'vue2-scrollbar';
 	import 'vue2-scrollbar/dist/style/vue2-scrollbar.css'
-	import { getCursorPositionByCenterOfElement } from "./helpers/helpers";
 
 	export default {
 		name: 'App',
@@ -54,7 +53,7 @@
 			Albums,
 			Photos,
 			VueScrollbar
-		}
+		},
 	}
 
 </script>

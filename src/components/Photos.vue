@@ -14,10 +14,10 @@
 		:style="{'perspective-origin': scenePerspectiveOrigin}"
 		@mousemove="transformScene($event)"
 		>
-			<b-button :class="['reset-scene', { 'active': activeScene }]" @click="resetScene()">close</b-button>
+			<b-button :class="['reset-scene', { 'active': (activeScene && !loading) }]" @click="resetScene()">close</b-button>
 			<div :class="['photos', { 'loading': loading, 'loaded': loaded }]">
 				<div v-for="(photo, index) in loadedPhotos"
-				:class="['photo', (activePhoto === index) ? 'activePhoto' : '', (activePhoto !== null && activePhoto > index) ? 'breakpoint' : '']"
+				:class="['photo', { 'activePhoto': (activePhoto === index), 'breakpoint': (activePhoto !== null && activePhoto > index) }]"
 				:style="{'transform': `
 					translate(-50%, -50%) 
 					matrix3d(
@@ -28,7 +28,7 @@
 					)
 				`}"
 				@click="showPhoto(index)">
-					<img :src="photo.url" :alt="photo.title">
+					<img :src="photo.src.large" :alt="photo.title">
 				</div>
 			</div>
 		</div>
@@ -105,7 +105,7 @@
 
 				this.photos.forEach(photo => {
 
-					let p = preloadImage(photo.url).then(
+					let p = preloadImage(photo.src.large).then(
 						url => {
 							loadedPhotos.push(photo);
 							this.counter++
@@ -147,7 +147,6 @@
 				let matrix3dData = [];
 
 				this.matrix3dData.forEach((el, i) => {
-
 					let moveX = this.matrix3dData[i].moveX - this.matrix3dData[index].moveX;
 					let moveY = this.matrix3dData[i].moveY - this.matrix3dData[index].moveY;
 					let moveZ = this.matrix3dData[i].moveZ - this.matrix3dData[index].moveZ + zDistance;
@@ -158,14 +157,14 @@
 				this.$store.commit('changeMatrix3dData', {matrix3dData});
 			},
 			transformScene(e) {
-				let sceneNode = e.currentTarget;
+				let scene = e.currentTarget;
 
 				if(!this.activeScene) {
 
-					let pos = getCursorPositionByCenterOfElement(sceneNode, e);
+					let pos = getCursorPositionByCenterOfElement(scene, e);
 
-					let w = sceneNode.offsetWidth;
-					let h = sceneNode.offsetHeight;
+					let w = scene.offsetWidth;
+					let h = scene.offsetHeight;
 
 					let tx = pos.x/w*100;
 					let ty = pos.y/h*100;
@@ -190,8 +189,6 @@
 			photos(newValue, oldValue) {
 				this.$store.commit('changeActivePhoto', { activePhoto: null });
 				this.photosCount = this.photos.length;
-				this.$store.commit('changeLoading', { loading: true });
-				this.$store.commit('changeLoaded', { loaded: false });
 				this.loadPhotos();
 				let matrix3dData = this.matrixData(newValue.length, 3000);
 				this.$store.commit('changeMatrix3dData', {matrix3dData});

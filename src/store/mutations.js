@@ -1,7 +1,9 @@
 export default {
 	changeCurrentAlbum(state, payload) {
 		state.currentAlbum = payload.index;
-		state.photos = state.albums[state.currentAlbum].photos;
+	},
+	changePhotos(state, payload) {
+		state.photos = payload.photos;
 	},
 	changeLoadedPhotos(state, payload) {
 		state.loadedPhotos = payload.loadedPhotos;

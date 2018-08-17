@@ -22,9 +22,26 @@
 		props: {
 			albums: Array
 		},
+		data() {
+			return {
+				authKey: '563492ad6f9170000100000185ca9c638e4644329728ab7c2d92172d'
+			}
+		},
 		methods: {
 			changeAlbum(index) {
 				this.$store.commit('changeCurrentAlbum', { index });
+				this.$store.commit('changeLoading', { loading: true });
+				this.$store.commit('changeLoaded', { loaded: false });
+
+				let albumName = encodeURIComponent(this.albums[index].name);
+				let url = `https://api.pexels.com/v1/search?query=${albumName}&per_page=40&page=1`;
+
+				this.$http.get(url, {headers: {'Authorization': this.authKey}})
+					.then(({ data }) => {
+                		this.$store.commit('changePhotos', { photos: data.photos });
+                	}).catch(reason => { 
+						console.log(reason);
+					});
 			}
 		},
 		components: {
