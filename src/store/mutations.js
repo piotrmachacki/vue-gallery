@@ -23,8 +23,5 @@ export default {
 	},
 	changeActiveScene(state, payload) {
 		state.activeScene = payload.activeScene;
-	},
-	changeScenePerspectiveOrigin(state, payload) {
-		state.scenePerspectiveOrigin = payload.scenePerspectiveOrigin;
 	}
 };

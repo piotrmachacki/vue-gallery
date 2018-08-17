@@ -52,7 +52,8 @@
 			return {
 				counter: 0,
 				photosCount: 0,
-				progress: 0
+				progress: 0,
+				scenePerspectiveOrigin: ''
 			}
 		},
 		computed: {
@@ -76,9 +77,6 @@
 			},
 			activeScene() {
 				return this.$store.state.activeScene;
-			},
-			scenePerspectiveOrigin() {
-				return this.$store.state.scenePerspectiveOrigin;
 			}
 		},
 		methods: {
@@ -142,7 +140,7 @@
 				this.$store.commit('changeActivePhoto', { activePhoto: index });
 
 				this.$store.commit('changeActiveScene', { activeScene: true });
-				this.$store.commit('changeScenePerspectiveOrigin', { scenePerspectiveOrigin: '' });
+				this.scenePerspectiveOrigin = '';
 
 				let zDistance = -200;
 
@@ -172,7 +170,7 @@
 					let tx = pos.x/w*100;
 					let ty = pos.y/h*100;
 
-					this.$store.commit('changeScenePerspectiveOrigin', { scenePerspectiveOrigin: `${50+tx*2}% ${50+ty*2}%` });
+					this.scenePerspectiveOrigin = `${50+tx*2}% ${50+ty*2}%`;
 
 				}
 			},

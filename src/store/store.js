@@ -18,8 +18,7 @@ export default new Vuex.Store({
 		activePhoto: null,
 		matrix3dData: [],
 		originMatrix3dData: [],
-		activeScene: false,
-		scenePerspectiveOrigin: ''
+		activeScene: false
 	},
 	getters,
 	mutations,

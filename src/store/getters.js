@@ -38,10 +38,5 @@ export default {
 		return () => {
 			return state.activeScene;
 		};
-	},
-	scenePerspectiveOrigin(state) {
-		return () => {
-			return state.scenePerspectiveOrigin;
-		};
 	}
 };
