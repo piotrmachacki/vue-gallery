@@ -9,10 +9,25 @@
 				</b-progress-bar>
 			</b-progress>
 		</div>
-		<div :class="['scene', { 'active': activeScene }]">
+		<div 
+		:class="['scene', { 'active': activeScene }]"
+		:style="{'perspective-origin': scenePerspectiveOrigin}"
+		@mousemove="transformScene($event)"
+		>
 			<b-button :class="['reset-scene', { 'active': activeScene }]" @click="resetScene()">close</b-button>
 			<div :class="['photos', { 'loading': loading, 'loaded': loaded }]">
-				<div class="photo" @click="showPhoto(index)" v-for="(photo, index) in photosData">
+				<div v-for="(photo, index) in loadedPhotos"
+				:class="['photo', (activePhoto === index) ? 'activePhoto' : '', (activePhoto !== null && activePhoto > index) ? 'breakpoint' : '']"
+				:style="{'transform': `
+					translate(-50%, -50%) 
+					matrix3d(
+						1, 0, 0, 0,
+						0, 1, 0, 0,
+						0, 0, 1, 0,
+						${matrix3dData[index].moveX}, ${matrix3dData[index].moveY}, ${matrix3dData[index].moveZ}, 1
+					)
+				`}"
+				@click="showPhoto(index)">
 					<img :src="photo.url" :alt="photo.title">
 				</div>
 			</div>
@@ -26,7 +41,7 @@
 
 <script>
 	
-	import { preloadImage, matrix3D, matrix3DElement } from "../helpers/helpers";
+	import { preloadImage, getRandomInteger, getCursorPositionByCenterOfElement } from "../helpers/helpers";
 
 	export default {
 		name: 'Photos',
@@ -35,32 +50,66 @@
 		},
 		data() {
 			return {
-				photosData: [],
-				loading: false,
-				loaded: false,
-				updated: false,
 				counter: 0,
 				photosCount: 0,
-				progress: 0,
-				activeScene: false
+				progress: 0
+			}
+		},
+		computed: {
+			loadedPhotos() {
+				return this.$store.state.loadedPhotos;
+			},
+			loading() {
+				return this.$store.state.loading;
+			},
+			loaded() {
+				return this.$store.state.loaded;
+			},
+			activePhoto() {
+				return this.$store.state.activePhoto;
+			},
+			matrix3dData() {
+				return this.$store.state.matrix3dData;
+			},
+			originMatrix3dData() {
+				return this.$store.state.originMatrix3dData;
+			},
+			activeScene() {
+				return this.$store.state.activeScene;
+			},
+			scenePerspectiveOrigin() {
+				return this.$store.state.scenePerspectiveOrigin;
 			}
 		},
 		methods: {
-			changePhotos() {
-				this.loading = true;
-				this.loaded = false;
-				const photos = document.querySelectorAll('.photos .photo');
-				matrix3D(photos, 1000);
+			matrixData(length, rangeVal = 500) {
+				let matrixData = [];
+
+				for(let i = 0; i < length; i++) {
+
+					let j = i + 1;
+					let range = rangeVal * (j/2);
+					let posZ = -500;
+
+					let moveX = getRandomInteger(-range, range);
+					let moveY = getRandomInteger(-range, range);
+					let moveZ = posZ + (j+1) * -500;
+
+					matrixData[i] = {moveX, moveY, moveZ};
+
+				}
+
+				return matrixData;
 			},
 			loadPhotos() {
-				let photosData = [];
+				let loadedPhotos = [];
 				let promises = [];
 
 				this.photos.forEach(photo => {
 
 					let p = preloadImage(photo.url).then(
 						url => {
-							photosData.push(photo);
+							loadedPhotos.push(photo);
 							this.counter++
 							this.updateCounter();
 						},
@@ -74,116 +123,93 @@
 
 				});
 
-				Promise.all(promises).then(values => {
-					this.photosData = photosData;
-					this.updated = true;
-				}).catch(reason => { 
-					console.log(reason);
-				});
+				setTimeout(() => {
+					Promise.all(promises).then(values => {
+						this.$store.commit('changeLoadedPhotos', { loadedPhotos });
+					}).catch(reason => { 
+						console.log(reason);
+					});
+				}, 1000);
 			},
 			displayPhotos() {
-				const photos = document.querySelectorAll('.photos .photo');
-				matrix3D(photos);
 				this.counter = 0;
 				this.progress = 0;
-				this.loading = false;
-				this.loaded = true;
+				this.$store.commit('changeLoading', { loading: false });
+				this.$store.commit('changeLoaded', { loaded: true });
 				this.resetScene();
 			},
-			updateCounter() {
-				this.progress = (this.counter/this.photosCount*100);
-			},
 			showPhoto(index) {
+				this.$store.commit('changeActivePhoto', { activePhoto: index });
 
-				let sceneNode = document.querySelector('.scene')
-				let photos = document.querySelectorAll('.photos .photo');
-				let activePhoto = photos[index];
-
-				photos.forEach(photo => {
-					photo.classList.remove('activePhoto');
-				});
-
-				this.activeScene = true;
-				sceneNode.style.perspectiveOrigin = '';
-				activePhoto.classList.add('activePhoto');
+				this.$store.commit('changeActiveScene', { activeScene: true });
+				this.$store.commit('changeScenePerspectiveOrigin', { scenePerspectiveOrigin: '' });
 
 				let zDistance = -200;
 
-				let activeMoveX = activePhoto.dataset.moveX;
-				let activeMoveY = activePhoto.dataset.moveY;
-				let activeMoveZ = activePhoto.dataset.moveZ;
+				let matrix3dData = [];
 
-				let breakpoint = false;
+				this.matrix3dData.forEach((el, i) => {
 
-				let transformProp = {'moveX':0, 'moveY':0, 'moveZ':zDistance}
-				matrix3DElement(activePhoto, transformProp);
-
-				photos.forEach(photo => {
-
-					if(!photo.classList.contains('activePhoto')) {
-
-						let moveX = photo.dataset.moveX - activeMoveX;
-						let moveY = photo.dataset.moveY - activeMoveY;
-						let moveZ = photo.dataset.moveZ - activeMoveZ + zDistance;
-
-						let transformProp = {'moveX':moveX, 'moveY':moveY, 'moveZ':moveZ}
-						matrix3DElement(photo, transformProp);
-
-						if(breakpoint === false) photo.style.opacity = 0;
-
-					} else {
-						breakpoint = true;
-					}
+					let moveX = this.matrix3dData[i].moveX - this.matrix3dData[index].moveX;
+					let moveY = this.matrix3dData[i].moveY - this.matrix3dData[index].moveY;
+					let moveZ = this.matrix3dData[i].moveZ - this.matrix3dData[index].moveZ + zDistance;
+					matrix3dData.push({moveX, moveY, moveZ});
 
 				});
+
+				this.$store.commit('changeMatrix3dData', {matrix3dData});
+			},
+			transformScene(e) {
+				let sceneNode = e.currentTarget;
+
+				if(!this.activeScene) {
+
+					let pos = getCursorPositionByCenterOfElement(sceneNode, e);
+
+					let w = sceneNode.offsetWidth;
+					let h = sceneNode.offsetHeight;
+
+					let tx = pos.x/w*100;
+					let ty = pos.y/h*100;
+
+					this.$store.commit('changeScenePerspectiveOrigin', { scenePerspectiveOrigin: `${50+tx*2}% ${50+ty*2}%` });
+
+				}
 			},
 			resetScene() {
+				this.$store.commit('changeActivePhoto', { activePhoto: null });
 
-				let sceneNode = document.querySelector('.scene')
-				let photos = document.querySelectorAll('.photos .photo');
+				let matrix3dData = this.originMatrix3dData;
+				this.$store.commit('changeMatrix3dData', {matrix3dData});
 
-				photos.forEach(photo => {
-
-					photo.classList.remove('activePhoto');
-
-					let moveX = photo.dataset.moveX;
-					let moveY = photo.dataset.moveY;
-					let moveZ = photo.dataset.moveZ;
-
-					let transformProp = {'moveX':moveX, 'moveY':moveY, 'moveZ':moveZ}
-					matrix3DElement(photo, transformProp);
-
-					photo.style.opacity = '';
-
-				});
-
-				this.activeScene = false;
-				sceneNode.classList.remove('active');
-
+				this.$store.commit('changeActiveScene', { activeScene: false });
+			},
+			updateCounter() {
+				this.progress = (this.counter/this.photosCount*100);
 			}
 		},
 		watch: {
 			photos(newValue, oldValue) {
+				this.$store.commit('changeActivePhoto', { activePhoto: null });
 				this.photosCount = this.photos.length;
-				this.changePhotos();
-				setTimeout(() => {
-					this.loadPhotos();
-				}, 1000);
-			}
-		},
-		mounted() {
-		},
-		updated() {
-			if(this.updated === true) {
-				this.updated = false;
-				this.changePhotos();
+				this.$store.commit('changeLoading', { loading: true });
+				this.$store.commit('changeLoaded', { loaded: false });
+				this.loadPhotos();
+				let matrix3dData = this.matrixData(newValue.length, 3000);
+				this.$store.commit('changeMatrix3dData', {matrix3dData});
+			},
+			loaded() {
+				let matrix3dData = this.matrixData(this.loadedPhotos.length);
+				let originMatrix3dData = [...matrix3dData];
+				this.$store.commit('changeOriginMatrix3dData', {originMatrix3dData});
+				this.$store.commit('changeMatrix3dData', {matrix3dData});
+			},
+			loadedPhotos() {
 				setTimeout(() => {
 					this.displayPhotos();
 				}, 1000);
 			}
 		}
-
-
 	};
 
 </script>
@@ -301,6 +327,10 @@
 		&.loaded {
 			.photo {
 				opacity: 1;
+
+				&.breakpoint {
+					opacity: 0;
+				}
 			}
 		}
 	}

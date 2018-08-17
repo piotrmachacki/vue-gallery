@@ -5,7 +5,7 @@
 		<div class="sidebar">
 			<vue-scrollbar classes="sidebar-scrollbar" ref="Scrollbar">
 				<div class="scrollbar-wrapper">
-					<albums :albums="albums" @currentAlbum="changeAlbum" />
+					<albums :albums="albums" />
 				</div>
 			</vue-scrollbar>
 		</div>
@@ -28,7 +28,6 @@
 
 <script>
 	
-	import albumsData from './data/albums'
 	import Albums from './components/Albums'
 	import Photos from './components/Photos'
 	import VueScrollbar from 'vue2-scrollbar';
@@ -37,59 +36,24 @@
 
 	export default {
 		name: 'App',
-		data() {
-			return {
-				albums: albumsData,
-				active: null,
-				photos: []
-			}
-		},
 		computed: {
-			activeAlbum() {
-				return this.albums[this.active];
-			}
-		},
-		watch: {
-			active: function(val) {
-				this.photos = this.activeAlbum.photos;
+			albums() {
+				return this.$store.state.albums;
+			},
+			currentAlbum() {
+				return this.$store.state.currentAlbum;
+			},
+			photos() {
+				return this.$store.state.photos;
 			}
 		},
 		methods: {
-			changeAlbum: function(index) {
-				this.active = index;
-			},
-			transformScene() {
-
-				let sceneNode = document.querySelector('.scene');
-
-				sceneNode.addEventListener('mousemove', e => {
-
-					if(!sceneNode.classList.contains('active')) {
-
-						let pos = getCursorPositionByCenterOfElement(sceneNode, e);
-
-						let w = sceneNode.offsetWidth;
-						let h = sceneNode.offsetHeight;
-
-						let tx = pos.x/w*100;
-						let ty = pos.y/h*100;
-
-						sceneNode.style['perspective-origin'] = `${50+tx*2}% ${50+ty*2}%`;
-
-					}
-
-				}, false);
-
-			}
+			
 		},
 		components: {
 			Albums,
 			Photos,
 			VueScrollbar
-		},
-		mounted() {
-			this.changeAlbum(0);
-			this.transformScene();
 		}
 	}
 

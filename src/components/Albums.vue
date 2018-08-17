@@ -24,11 +24,14 @@
 		},
 		methods: {
 			changeAlbum(index) {
-				this.$emit('currentAlbum', index);
+				this.$store.commit('changeCurrentAlbum', { index });
 			}
 		},
 		components: {
 			Album
+		},
+		mounted() {
+			this.changeAlbum(0);
 		}
 	}
 
